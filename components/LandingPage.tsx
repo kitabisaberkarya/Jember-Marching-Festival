@@ -28,13 +28,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateToLogin }) =
     const [pastEvents, setPastEvents] = useState<PastEvent[]>([]);
     const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
     const [requirements, setRequirements] = useState<Requirement[]>([]);
+    const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
 
     useEffect(() => {
-        api.getPastEvents().then(setPastEvents);
-        api.getGalleryImages().then(setGalleryImages);
-        api.getCompetitionRequirements().then(setRequirements);
+        const fetchContent = async () => {
+            setLoading(true);
+            try {
+                const content = await api.getLandingPageContent();
+                setPastEvents(content.pastEvents || []);
+                setGalleryImages(content.galleryImages || []);
+                setRequirements(content.requirements || []);
+            } catch (error) {
+                console.error("Failed to load landing page content:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchContent();
     }, []);
+    
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-brand-light">
+          <p className="text-brand-primary text-lg">Loading Content...</p>
+        </div>
+      );
+    }
 
     return (
         <div className="bg-brand-light font-sans">
